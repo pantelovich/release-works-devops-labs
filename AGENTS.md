@@ -1,4 +1,4 @@
-# Release Works repository instructions
+# Steady Deploy repository instructions
 
 - Deliver one reviewable change at a time. Use branches prefixed with `codex/` for agent changes after the initial setup.
 - Use [docs/agents.md](docs/agents.md) for Ruflo routing and review ownership.

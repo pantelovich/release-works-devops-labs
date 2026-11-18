@@ -1,4 +1,4 @@
-# Release Works DevOps Labs
+# Steady Deploy DevOps Labs
 
 Practise a CI repair, release handover and rollback on the same small Docker service. The default path uses Python, GitHub Actions and local Docker. The optional AWS and Azure paths provision isolated sandbox resources when a learner follows the live runbooks.
 
