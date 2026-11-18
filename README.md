@@ -13,6 +13,7 @@ This is a fictional training project. The service serves a version and a health 
 | [03 · AWS staging](docs/labs/03-aws-staging.md) | Use Terraform and ECS to observe release health, automatic rollback and state reconciliation | Task revision, ECS events, logs and cleanup |
 | [04 · Azure staging](docs/labs/04-azure-staging.md) | Use Bicep and Azure Container Apps to isolate an unhealthy revision and restore traffic | Revision health, traffic weights, HTTP version and cleanup |
 | [05 · Monitor and hand over](docs/labs/05-monitoring-handover.md) | Agree one health signal, reproduce a fault and write an actionable notification and handover | Failure signal and another operator’s response |
+| [06 · Dependency security](docs/labs/06-dependency-security.md) | Interpret a real advisory and prove a temporary affected inventory is rejected | Advisory match, fixed-version rerun and peer explanation |
 
 Run 01 and 02 before opening live cloud labs. Start with the commands once, then repeat them manually and explain each result to your partner.
 
@@ -24,10 +25,11 @@ Use Python 3.12, Docker with Compose v2, Git and a Bash shell. On macOS or Linux
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --require-hashes -r requirements.txt
-python -m pip install ruff==0.17.5
+python -m pip install ruff==0.17.5 pip-audit==2.10.1
 ruff check .
 ruff format --check .
 python -m unittest discover -s tests -v
+python -m pip_audit --disable-pip --require-hashes --strict --progress-spinner off -r requirements.txt
 bash scripts/rehearse-local.sh
 ```
 
