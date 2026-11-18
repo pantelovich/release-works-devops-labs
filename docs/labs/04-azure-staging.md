@@ -4,17 +4,17 @@ Use your own Azure sandbox to deploy a Bicep-defined Container App. Keep traffic
 
 ## 1. Get the lab image and choose the subscription
 
-Use Azure CLI, its Container Apps extension if required, Bicep, Docker Buildx and Bash. In the GitHub lab repository, open **Actions → Publish lab image → Run workflow** on your fork's main branch. Open the completed run and copy the digest reference from its summary. GitHub Packages may create it as private. To allow anonymous pulls, use your package's **Package settings → Change visibility → Public** for this synthetic image. Public visibility is permanent. If a maintainer has already published this lab image, use their digest and skip publishing another copy.
+Use Azure CLI, its Container Apps extension if required, Bicep, Docker and Bash. The command below uses the public Linux AMD64 image built from the v0.1.0 lab source. If you change the app, use **Actions → Publish lab image → Run workflow** on your fork's main branch. Copy the new digest from the run summary. If your package is private, anonymous pulls require making that synthetic package public under **Package settings → Change visibility**. GitHub makes that package visibility change permanent.
 
 The Bicep template creates only the environment and app. The app has a public HTTPS endpoint for synthetic version and health data. The environment does not create a Log Analytics workspace. Revisions scaled to one replica can consume credits or generate charges. Check your exact subscription offer, regional availability and the Container Apps meter before provisioning. Finish and delete the resource group in one session.
 
 [GitHub Packages access](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility) · [Azure free account services](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/create-free-services) · [Container Apps billing](https://learn.microsoft.com/en-us/azure/container-apps/billing)
 
-Run from the repository root in Bash and replace the values.
+Run from the repository root in Bash. Replace the subscription and lab names with yours.
 
 ```bash
 set -euo pipefail
-IMAGE_REF='ghcr.io/your-github-name/release-works-devops-labs@sha256:paste-digest'
+IMAGE_REF='ghcr.io/pantelovich/release-works-devops-labs@sha256:a1a88ced833c89505dad4b7be13920b1c93f84bf6ef3feac0673d5b107adcbec'
 AZ_SUBSCRIPTION='your-sandbox-subscription-id'
 LAB_REGION=uksouth
 LAB_RG=rg-rw-lab-yourname-01
