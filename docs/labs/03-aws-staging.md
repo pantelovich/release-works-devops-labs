@@ -4,14 +4,14 @@ Use a personal AWS sandbox. The goal is to see ECS restore a previously complete
 
 ## Before you build
 
-- Finish labs 01 and 02. Install Terraform 1.11.2 or later, AWS CLI v2, Docker with Buildx, and Bash.
-- Check your account plan, credits, Fargate availability and region before you create resources. Use short sessions. Fargate, ECR storage, logs and public IPv4 can incur charges. A budget alert can be delayed.
-- Use an isolated account and short-lived credentials, such as an AWS IAM Identity Center profile. The sandbox operator needs permission to create and remove the named ECR, ECS, networking, CloudWatch and IAM resources, including `iam:PassRole` for the lab execution role. In a managed account ask the administrator to scope these permissions.
-- Keep `lab.tfvars`, the Terraform state and saved plans on your machine. This one-operator lab uses local state. Keep the state until teardown is verified. A shared client project needs an approved remote backend and one coherent access model.
+- Finish labs 01 and 02. Install Terraform 1.11.2 or later, AWS CLI v2, Docker with Buildx, Python 3 and Bash.
+- Check your account plan, credits, Fargate availability and region before you create resources. Use short sessions. Fargate, ECR storage, S3 state, logs and public IPv4 can incur charges. A budget alert can be delayed.
+- Use an isolated account and short-lived credentials, such as an AWS IAM Identity Center profile. The sandbox operator needs permission to create and remove the lab's S3, ECR, ECS, networking, CloudWatch and IAM resources, including `iam:PassRole` for the lab execution role. In a managed account ask the administrator to scope these permissions.
+- Keep `lab.tfvars`, `lab.s3.tfbackend` and saved plans off Git. Terraform stores state in a private, versioned S3 bucket with an S3 lockfile. Keep that bucket until infrastructure teardown is verified. If you already applied the earlier v0.1.0 local-state lab, destroy with that version before starting this one.
 
-[AWS account plans](https://docs.aws.amazon.com/us_en/awsaccountbilling/latest/aboutv2/free-tier.html) · [Fargate pricing](https://aws.amazon.com/fargate/pricing/) · [ECR pricing](https://aws.amazon.com/ecr/pricing/) · [Public IPv4 pricing](https://aws.amazon.com/vpc/pricing/) · [Budget alerts](https://docs.aws.amazon.com/cost-management/latest/userguide/bcm-lite-use-budget.html)
+[AWS account plans](https://docs.aws.amazon.com/us_en/awsaccountbilling/latest/aboutv2/free-tier.html) · [Fargate pricing](https://aws.amazon.com/fargate/pricing/) · [ECR pricing](https://aws.amazon.com/ecr/pricing/) · [Public IPv4 pricing](https://aws.amazon.com/vpc/pricing/) · [Budget alerts](https://docs.aws.amazon.com/cost-management/latest/userguide/bcm-lite-use-budget.html) · [S3 pricing](https://aws.amazon.com/s3/pricing/)
 
-## 1. Build an immutable image
+## 1. Prepare state and build an immutable image
 
 Run from the repository root in Bash. Replace the profile and pick a unique name starting with `rw-lab-`. Check the printed identity before running any of the create commands.
 
@@ -25,10 +25,34 @@ REGISTRY="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 IMAGE="$REGISTRY/$LAB_NAME:lab"
 ```
 
-Run `aws sso login --profile "$AWS_PROFILE"` first if your profile uses IAM Identity Center. A successful `create-repository` establishes that this is a repository you just created. If it already exists, stop and choose a new name.
+Run `aws sso login --profile "$AWS_PROFILE"` first if your profile uses IAM Identity Center. After confirming the identity, create a fresh state bucket in the selected London region. If a create command reports that a name already exists, choose a new name. Store the backend location locally. Keep AWS credentials in your profile.
 
 ```bash
-aws ecr create-repository --repository-name "$LAB_NAME" --image-tag-mutability IMMUTABLE
+STATE_BUCKET="$LAB_NAME-state-$(python3 -c 'import secrets; print(secrets.token_hex(4))')"
+aws s3api create-bucket --bucket "$STATE_BUCKET" \
+  --create-bucket-configuration LocationConstraint="$AWS_REGION"
+aws s3api put-public-access-block --bucket "$STATE_BUCKET" --expected-bucket-owner "$ACCOUNT_ID" \
+  --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+aws s3api put-bucket-versioning --bucket "$STATE_BUCKET" --expected-bucket-owner "$ACCOUNT_ID" \
+  --versioning-configuration Status=Enabled
+aws s3api put-bucket-tagging --bucket "$STATE_BUCKET" --expected-bucket-owner "$ACCOUNT_ID" \
+  --tagging 'TagSet=[{Key=Project,Value=release-works-devops-labs},{Key=Environment,Value=training}]'
+
+cat > infra/aws/lab.s3.tfbackend <<BACKEND
+bucket              = "$STATE_BUCKET"
+key                 = "staging/terraform.tfstate"
+region              = "$AWS_REGION"
+allowed_account_ids = ["$ACCOUNT_ID"]
+BACKEND
+```
+
+Use Terraform's default workspace. AWS recommends waiting 15 minutes after first enabling S3 versioning before you write to the bucket. Build the ECR image and review the architecture in that time. The backend's state and lockfile permissions are scoped to the bucket and its state path.
+
+[S3 versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/manage-versioning-examples.html) · [Terraform S3 backend and IAM permissions](https://developer.hashicorp.com/terraform/language/backend/s3)
+
+```bash
+aws ecr create-repository --repository-name "$LAB_NAME" --image-tag-mutability IMMUTABLE \
+  --tags Key=Project,Value=release-works-devops-labs Key=Environment,Value=training
 aws ecr get-login-password |
   docker login --username AWS --password-stdin "$REGISTRY"
 docker buildx build --platform linux/amd64 --load --tag "$IMAGE" .
@@ -46,10 +70,10 @@ VARS
 
 ## 2. Deploy v1 and record the baseline
 
-The plan creates a single-zone VPC, one Fargate service with no inbound rules, an execution role scoped to the image and lab logs, and two task definitions. Tasks need outbound HTTPS and a public IPv4 address to pull the image and send logs. The sample uses neither NAT nor a load balancer.
+The plan creates a single-zone VPC and calls the ECS release module for one Fargate service with no inbound rules, an execution role scoped to the image and lab logs, and two task definitions. Tasks need outbound HTTPS and a public IPv4 address to pull the image and send logs. The sample uses neither NAT nor a load balancer.
 
 ```bash
-terraform -chdir=infra/aws init -lockfile=readonly
+terraform -chdir=infra/aws init -lockfile=readonly -backend-config=lab.s3.tfbackend
 terraform -chdir=infra/aws plan -var-file=lab.tfvars -out=baseline.tfplan
 terraform -chdir=infra/aws show -no-color baseline.tfplan
 ```
@@ -120,4 +144,8 @@ aws ecr delete-repository --repository-name "$LAB_NAME" --force
 docker logout "$REGISTRY"
 ```
 
-Expect empty Terraform state. Run `aws ecr describe-repositories --repository-names "$LAB_NAME"` separately to confirm `RepositoryNotFoundException`. Check the exact repository and reason if you get another error. Check AWS Billing later for final usage. Keep a private record of the reviewed plan, health evidence, rollback result, elapsed time and cleanup. For a portfolio example, redact account IDs and infrastructure identifiers.
+Expect empty Terraform state. Run `aws ecr describe-repositories --repository-names "$LAB_NAME"` separately to confirm `RepositoryNotFoundException`. Check the exact repository and reason if you get another error.
+
+Once the state is empty and the lab is closed, find the exact bucket from `lab.s3.tfbackend` in the S3 console under your sandbox account. Select **Empty** and follow the confirmation to remove every version and delete marker. Then select **Delete** for the same bucket. Confirm the bucket is absent. AWS recommends the console for emptying versioned buckets. Use a fresh clone or directory for a later run so the old backend configuration cannot be reused accidentally.
+
+Check AWS Billing later for final usage. Keep a private record of the reviewed plan, health evidence, rollback result, elapsed time and cleanup. For a portfolio example, redact account IDs, bucket names and infrastructure identifiers. [Empty a versioned S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/empty-bucket.html)

@@ -50,7 +50,7 @@ jobs:
           terraform_wrapper: false
       - name: Validate AWS Terraform and its provider lock
         run: |
-          terraform -chdir=infra/aws fmt -check
+          terraform -chdir=infra/aws fmt -check -recursive
           terraform -chdir=infra/aws init -backend=false -lockfile=readonly
           terraform -chdir=infra/aws validate
       - name: Compile Azure Bicep

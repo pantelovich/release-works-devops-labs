@@ -1,19 +1,19 @@
 output "cluster" {
-  value = aws_ecs_cluster.lab.name
+  value = module.release.cluster
 }
 
 output "service" {
-  value = aws_ecs_service.lab.name
+  value = module.release.service
 }
 
 output "baseline_task_definition" {
-  value = aws_ecs_task_definition.release["v1"].arn
+  value = module.release.baseline_task_definition
 }
 
 output "candidate_task_definition" {
-  value = aws_ecs_task_definition.release["v2"].arn
+  value = module.release.candidate_task_definition
 }
 
 output "log_group" {
-  value = aws_cloudwatch_log_group.lab.name
+  value = module.release.log_group
 }

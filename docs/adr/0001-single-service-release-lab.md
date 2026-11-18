@@ -6,7 +6,7 @@ Two learners need to distinguish CI failures, an unhealthy rollout and a verifie
 
 ## Decision
 
-Use one stateless Flask service packaged with Gunicorn. Keep the version and readiness endpoints stable. Use local Compose for the shared rehearsal, Terraform for one optional AWS ECS lab and Bicep for one optional Azure Container Apps lab. Model failure through an explicit configuration value. Cloud CI validates templates without cloud credentials.
+Use one stateless Flask service packaged with Gunicorn. Keep the version and readiness endpoints stable. Use local Compose for the shared rehearsal, Terraform for one optional AWS ECS lab and Bicep for one optional Azure Container Apps lab. Model failure through an explicit configuration value. The AWS ECS release is a child module with its network supplied by the root. Live runs use a dedicated versioned S3 state bucket with native locking. Cloud CI validates templates without cloud credentials.
 
 ## Consequences
 
