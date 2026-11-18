@@ -6,6 +6,8 @@ This is a fictional training project. The service serves a version and a health 
 
 ## Start here
 
+Use the [learning glossary](docs/learning-glossary.md) for the Git, Docker, AWS and security terms used in these labs.
+
 | Lab | What you do | Evidence |
 | --- | --- | --- |
 | [01 · CI repair](docs/labs/01-ci-repair.md) | Reproduce a broken workflow on a branch, diagnose it and review the fix | Red and green runs, plus proof that failures still block delivery |

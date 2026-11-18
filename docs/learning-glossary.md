@@ -64,9 +64,9 @@ A dependency vulnerability is a known security weakness in a library or tool ver
 
 ## Official references
 
-- [GitHub: About branches](https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-deleting-branches/about-branches)
+- [GitHub: About branches](https://docs.github.com/en/pull-requests/reference/branches)
 - [GitHub: About pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
-- [Docker: Image digests](https://docs.docker.com/digests/)
+- [Docker: Image digests](https://docs.docker.com/dhi/explore/security-concepts/digests/)
 - [Docker: Healthcheck instruction](https://docs.docker.com/reference/dockerfile/#healthcheck)
 - [AWS: IAM roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
 - [AWS: Security groups for your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html)
