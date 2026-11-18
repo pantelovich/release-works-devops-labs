@@ -1,0 +1,13 @@
+services:
+  api:
+    image: ${LAB_IMAGE:-release-works-demo:v1}
+    environment:
+      RELEASE_HEALTH: ${RELEASE_HEALTH:-healthy}
+    ports:
+      - "127.0.0.1:${LAB_PORT:-18080}:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
