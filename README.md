@@ -1,6 +1,6 @@
 # Steady Deploy DevOps Labs
 
-Practise a CI repair, release handover and rollback on the same small Docker service. The default path uses Python, GitHub Actions and local Docker. The optional AWS and Azure paths provision isolated sandbox resources when a learner follows the live runbooks.
+Practise CI repair, release and rollback, network troubleshooting and operational handover on the same Docker service. The default path uses Python, GitHub Actions and local Docker. The optional AWS and Azure paths provision isolated sandbox resources when a learner follows the live runbooks.
 
 This is a fictional training project. The service serves a version and a health result. It holds no user data. The company operating templates and founder schedule are kept in a separate private repository.
 
@@ -16,8 +16,9 @@ Use the [learning glossary](docs/learning-glossary.md) for the Git, Docker, AWS 
 | [04 · Azure staging](docs/labs/04-azure-staging.md) | Use Bicep and Azure Container Apps to isolate an unhealthy revision and restore traffic | Revision health, traffic weights, HTTP version and cleanup |
 | [05 · Monitor and hand over](docs/labs/05-monitoring-handover.md) | Agree one health signal, reproduce a fault and write an actionable notification and handover | Failure signal and another operator’s response |
 | [06 · Dependency security](docs/labs/06-dependency-security.md) | Interpret a real advisory and prove a temporary affected inventory is rejected | Advisory match, fixed-version rerun and peer explanation |
+| [07 · Operations troubleshooting](docs/labs/07-operations-troubleshooting.md) | Diagnose DNS, TCP and HTTP failures, then write a Bash or Python probe | Before/after checks, root cause, app logs and an independent rerun |
 
-Run 01 and 02 before opening live cloud labs. Start with the commands once, then repeat them manually and explain each result to your partner.
+Run 01, 02 and 07 before opening live cloud labs. Start with the commands once, then repeat them manually and explain each result to your partner.
 
 ## Run the checks
 
